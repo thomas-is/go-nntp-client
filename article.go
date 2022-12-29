@@ -7,23 +7,23 @@ import (
 
 
 type Article struct {
-  Status     Status
-  Number     int
-  MessageId  string
-  Path       []string
-  References []string
-  Header     map[string]string
-  Body       []string
+  Number    int
+  Header    map[string]string
+  Body      []string
+  Client    Client            `json:"-"`
 }
 
 
 func (n Client) Article(id string) Article {
 
   var article Article
+  header := make(map[string]string)
+  var body []string
 
-  n = n.Command("ARTICLE "+id)
-
-  article.Status = n.Status
+  article.Number = 0
+  article.Header = header
+  article.Body   = body
+  article.Client = n.Command("ARTICLE "+id)
 
 /* 220 n <a> article retrieved - head and body follow
            (n = article number, <a> = message-id)
@@ -35,26 +35,25 @@ func (n Client) Article(id string) Article {
    423 no such article number in this group
    430 no such article found                              */
 
-  if n.Status.Code < 220 || n.Status.Code > 223 {
+  if article.Client.Status.Code < 220 || article.Client.Status.Code > 223 {
     return article
   }
 
-  info := strings.Split(n.Status.Message, " ")
+  info := strings.Split(article.Client.Status.Message, " ")
   article.Number, _ = strconv.Atoi(info[0])
-  article.MessageId = info[1]
+//  message.MessageId = info[1]
 
   var field string
   emptyLine := 0
-  header := make(map[string]string)
 
-  for i := 0; i < len(n.Answer); i++ {
-    if n.Answer[i] == "" {
+  for i := 0; i < len(article.Client.Answer); i++ {
+    if article.Client.Answer[i] == "" {
       /* empty line, assuming end of header */
       emptyLine = i
       break
     }
 
-    atom := strings.Split(n.Answer[i], ": ")
+    atom := strings.Split(article.Client.Answer[i], ": ")
     if len(atom) == 1 {
       /* append single atom to last known field */
       header[field] = header[field] + atom[0]
@@ -68,19 +67,19 @@ func (n Client) Article(id string) Article {
 
   article.Header = header
 
-  var value string
-  var found bool
+//  var value string
+//  var found bool
+//
+//  if value, found = header["References"]; found {
+//    article.References = strings.Split(value, "\t")
+//  }
+//
+//  if value, found = header["Path"]; found {
+//    article.Path = strings.Split(value, "!")
+//  }
 
-  if value, found = header["References"]; found {
-    article.References = strings.Split(value, "\t")
-  }
-
-  if value, found = header["Path"]; found {
-    article.Path = strings.Split(value, "!")
-  }
-
-  if emptyLine+1 < len(n.Answer)-1 {
-    article.Body = n.Answer[emptyLine+1:len(n.Answer)-1]
+  if emptyLine+1 < len(article.Client.Answer)-1 {
+    article.Body = article.Client.Answer[emptyLine+1:len(article.Client.Answer)-1]
   }
 
   return article

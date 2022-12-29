@@ -6,25 +6,23 @@ import (
 )
 
 type Group struct {
-  Status  Status
   Name    string
   Total   int
   First   int
   Last    int
+  Client  Client
 }
 
 func (n Client) Group(name string) Group {
 
-  n = n.Command("GROUP "+name)
-
   var g Group
+  g.Client = n.Command("GROUP "+name)
 
-  g.Status = n.Status
-  if g.Status.Code != 211 {
+  if g.Client.Status.Code != 211 {
     return g
   }
 
-  info := strings.Split(n.Status.Message, " ")
+  info := strings.Split(g.Client.Status.Message, " ")
 
   g.Total, _ = strconv.Atoi(info[0])
   g.First, _ = strconv.Atoi(info[1])
