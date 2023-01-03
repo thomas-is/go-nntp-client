@@ -22,7 +22,7 @@ type Client struct {
   Status  Status    //`json:"-"`
 }
 
-func Dial( host string, port int) Client {
+func Dial( host string, port int) *Client {
 
   var n Client
   var err error
@@ -34,12 +34,14 @@ func Dial( host string, port int) Client {
     os.Exit(1)
   }
 
-  return n.Read()
+  n.Read()
+
+  return &n
 
 }
 
 
-func (n Client) Read() Client {
+func (n *Client) Read() *Client {
 
   buffer := make([]byte, NNTP_BUFFER_SIZE)
 
@@ -50,14 +52,10 @@ func (n Client) Read() Client {
   }
 
   lines := strings.Split(string(buffer), NNTP_EOL)
-  info := strings.Split(lines[0], " ")
+  info  := strings.Split(lines[0], " ")
 
-  var status Status
-
-  status.Code, _ = strconv.Atoi(info[0])
-  status.Message = strings.Join(info[1:]," ")
-
-  n.Status = status
+  n.Status.Code, _ = strconv.Atoi(info[0])
+  n.Status.Message = strings.Join(info[1:]," ")
   /* remove first line (status)
      and last "line" (zero filled) */
   n.Answer = lines[1:len(lines)-1]
@@ -67,7 +65,7 @@ func (n Client) Read() Client {
 }
 
 
-func (n Client) Command(message string) Client {
+func (n *Client) Command(message string) *Client {
 
   _, err := n.Socket.Write([]byte(message+"\n"))
 
@@ -81,7 +79,7 @@ func (n Client) Command(message string) Client {
 }
 
 
-func (n Client) Quit() Client {
+func (n *Client) Quit() *Client {
 
   n.Command("QUIT").Socket.Close()
 

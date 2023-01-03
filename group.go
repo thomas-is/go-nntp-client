@@ -10,19 +10,18 @@ type Group struct {
   Total   int
   First   int
   Last    int
-  Client  Client
 }
 
-func (n Client) Group(name string) Group {
+func (n *Client) Group(name string) Group {
 
   var g Group
-  g.Client = n.Command("GROUP "+name)
+  n = n.Command("GROUP "+name)
 
-  if g.Client.Status.Code != 211 {
+  if n.Status.Code != 211 {
     return g
   }
 
-  info := strings.Split(g.Client.Status.Message, " ")
+  info := strings.Split(n.Status.Message, " ")
 
   g.Total, _ = strconv.Atoi(info[0])
   g.First, _ = strconv.Atoi(info[1])

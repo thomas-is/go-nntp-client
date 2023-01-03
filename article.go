@@ -10,11 +10,10 @@ type Article struct {
   Number    int
   Header    map[string]string
   Body      []string
-  Client    Client            `json:"-"`
 }
 
 
-func (n Client) Article(id string) Article {
+func (n *Client) Article(id string) Article {
 
   var article Article
   header := make(map[string]string)
@@ -23,7 +22,6 @@ func (n Client) Article(id string) Article {
   article.Number = 0
   article.Header = header
   article.Body   = body
-  article.Client = n.Command("ARTICLE "+id)
 
 /* 220 n <a> article retrieved - head and body follow
            (n = article number, <a> = message-id)
@@ -35,25 +33,26 @@ func (n Client) Article(id string) Article {
    423 no such article number in this group
    430 no such article found                              */
 
-  if article.Client.Status.Code < 220 || article.Client.Status.Code > 223 {
+  n = n.Command("ARTICLE "+id)
+  if n.Status.Code < 220 || n.Status.Code > 223 {
     return article
   }
 
-  info := strings.Split(article.Client.Status.Message, " ")
+  info := strings.Split(n.Status.Message, " ")
   article.Number, _ = strconv.Atoi(info[0])
 //  message.MessageId = info[1]
 
   var field string
   emptyLine := 0
 
-  for i := 0; i < len(article.Client.Answer); i++ {
-    if article.Client.Answer[i] == "" {
+  for i := 0; i < len(n.Answer); i++ {
+    if n.Answer[i] == "" {
       /* empty line, assuming end of header */
       emptyLine = i
       break
     }
 
-    atom := strings.Split(article.Client.Answer[i], ": ")
+    atom := strings.Split(n.Answer[i], ": ")
     if len(atom) == 1 {
       /* append single atom to last known field */
       header[field] = header[field] + atom[0]
@@ -78,8 +77,8 @@ func (n Client) Article(id string) Article {
 //    article.Path = strings.Split(value, "!")
 //  }
 
-  if emptyLine+1 < len(article.Client.Answer)-1 {
-    article.Body = article.Client.Answer[emptyLine+1:len(article.Client.Answer)-1]
+  if emptyLine+1 < len(n.Answer)-1 {
+    article.Body = n.Answer[emptyLine+1:len(n.Answer)-1]
   }
 
   return article
