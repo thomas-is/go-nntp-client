@@ -7,11 +7,10 @@ import (
 
 
 type Article struct {
-  Number    int
-  Header    map[string]string
-  Body      []string
+  Number  int
+  Header  map[string]string
+  Body    []string
 }
-
 
 func (n *Client) Article(id string) Article {
 
@@ -43,12 +42,14 @@ func (n *Client) Article(id string) Article {
 //  message.MessageId = info[1]
 
   var field string
-  emptyLine := 0
+  var bodyLine int
 
   for i := 0; i < len(n.Answer); i++ {
+
+    bodyLine = i
+
     if n.Answer[i] == "" {
       /* empty line, assuming end of header */
-      emptyLine = i
       break
     }
 
@@ -64,23 +65,34 @@ func (n *Client) Article(id string) Article {
 
   }
 
+  bodyLine += 1
+
   article.Header = header
 
-//  var value string
-//  var found bool
-//
-//  if value, found = header["References"]; found {
-//    article.References = strings.Split(value, "\t")
-//  }
-//
-//  if value, found = header["Path"]; found {
-//    article.Path = strings.Split(value, "!")
-//  }
-
-  if emptyLine+1 < len(n.Answer)-1 {
-    article.Body = n.Answer[emptyLine+1:len(n.Answer)-1]
+  if bodyLine < len(n.Answer)-1 {
+    article.Body = n.Answer[bodyLine:len(n.Answer)-1]
   }
 
   return article
 
 }
+
+func (a Article) References() []string {
+  value, found := a.Header["References"]
+  if ! found {
+    return make([]string, 0)
+  }
+  f := func(c rune) bool {
+      return c == ' ' || c == '\t'
+  }
+  return strings.FieldsFunc(value, f)
+}
+
+func (a Article) Path() []string {
+  value, found := a.Header["Path"]
+  if ! found {
+    return make([]string, 0)
+  }
+  return strings.Split(value, "!")
+}
+
