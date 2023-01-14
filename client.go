@@ -17,9 +17,9 @@ type Status struct {
 }
 
 type Client struct {
-  Socket  net.Conn  //`json:"-"`
-  Answer  []string  //`json:"-"`
-  Status  Status    //`json:"-"`
+  Socket  net.Conn  `json:"-"`
+  Status  Status
+  Answer  []string
 }
 
 func Dial( host string, port int) *Client {
