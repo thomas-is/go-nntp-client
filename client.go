@@ -17,9 +17,10 @@ type Status struct {
 }
 
 type Client struct {
-  Socket  net.Conn  `json:"-"`
-  Status  Status
-  Answer  []string
+  Socket          net.Conn  `json:"-"`
+  Status          Status
+  OverviewFormat  []string
+  Answer          []string
 }
 
 func Dial( host string, port int) *Client {
@@ -37,6 +38,26 @@ func Dial( host string, port int) *Client {
   n.Read()
 
   return &n
+
+}
+
+
+func (n *Client) OverviewFmt() *Client {
+
+  n.Command("LIST OVERVIEW.FMT")
+
+  if n.Status.Code != 215 {
+    return n
+  }
+
+  n.OverviewFormat = make([]string, len(n.Answer))
+
+  n.OverviewFormat[0] = "Number"
+  for i:=1;i<len(n.Answer);i++ {
+    n.OverviewFormat[i] = strings.Split(n.Answer[i-1], ":")[0]
+  }
+
+  return n
 
 }
 

@@ -13,16 +13,23 @@ type Overview struct {
 }
 
 
-func (n *Client) Xover( arg string ) []Overview {
+func (n *Client) Xover( arg string ) []map[string]string {
 
-  n.Command("XOVER "+arg)
+  n.OverviewFmt().Command("XOVER "+arg)
 
-  overview := make([]Overview,len(n.Answer))
+  var value []string
+  overview := make([]map[string]string,len(n.Answer)-1)
 
-  for i := 0; i < len(n.Answer); i++ {
-    overview[i].Data = strings.Split(n.Answer[i], "\t")
+  for i:=0;i<len(n.Answer)-1;i++ {
+    overview[i] = make(map[string]string)
+    value = strings.Split(n.Answer[i], "\t")
+    for j:=0;j<len(value);j++ {
+      overview[i][n.OverviewFormat[j]] = value[j]
+    }
   }
+
   return overview
+
 }
 
 
