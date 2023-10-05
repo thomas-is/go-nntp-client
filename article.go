@@ -7,20 +7,20 @@ import (
 
 
 type Article struct {
-  Number  int
-  Header  map[string]string
-  Body    []string
+  number  int
+  header  map[string]string
+  body    []string
 }
 
-func (n *Client) Article(id string) Article {
+func (n *Client) Article( id string ) Article {
 
   var article Article
   header := make(map[string]string)
   var body []string
 
-  article.Number = 0
-  article.Header = header
-  article.Body   = body
+  article.number = 0
+  article.header = header
+  article.body   = body
 
 /* 220 n <a> article retrieved - head and body follow
            (n = article number, <a> = message-id)
@@ -33,27 +33,26 @@ func (n *Client) Article(id string) Article {
    430 no such article found                              */
 
   n = n.Command("ARTICLE "+id)
-  if n.Status.Code < 220 || n.Status.Code > 223 {
+  if n.status.code < 220 || n.status.code > 223 {
     return article
   }
 
-  info := strings.Split(n.Status.Message, " ")
-  article.Number, _ = strconv.Atoi(info[0])
-//  message.MessageId = info[1]
+  info := strings.Split(n.status.message, " ")
+  article.number, _ = strconv.Atoi(info[0])
 
   var field string
   var bodyLine int
 
-  for i := 0; i < len(n.Answer); i++ {
+  for i := 0; i < len(n.answer); i++ {
 
     bodyLine = i
 
-    if n.Answer[i] == "" {
+    if n.answer[i] == "" {
       /* empty line, assuming end of header */
       break
     }
 
-    atom := strings.Split(n.Answer[i], ": ")
+    atom := strings.Split(n.answer[i], ": ")
     if len(atom) == 1 {
       /* append single atom to last known field */
       header[field] = header[field] + atom[0]
@@ -67,10 +66,10 @@ func (n *Client) Article(id string) Article {
 
   bodyLine += 1
 
-  article.Header = header
+  article.header = header
 
-  if bodyLine < len(n.Answer)-1 {
-    article.Body = n.Answer[bodyLine:len(n.Answer)-1]
+  if bodyLine < len(n.answer)-1 {
+    article.body = n.answer[bodyLine:len(n.answer)-1]
   }
 
   return article
@@ -78,7 +77,7 @@ func (n *Client) Article(id string) Article {
 }
 
 func (a Article) References() []string {
-  value, found := a.Header["References"]
+  value, found := a.header["References"]
   if ! found {
     return make([]string, 0)
   }
@@ -89,7 +88,7 @@ func (a Article) References() []string {
 }
 
 func (a Article) Path() []string {
-  value, found := a.Header["Path"]
+  value, found := a.header["Path"]
   if ! found {
     return make([]string, 0)
   }

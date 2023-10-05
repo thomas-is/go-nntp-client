@@ -6,10 +6,10 @@ import (
 )
 
 type Group struct {
-  Name    string
-  Total   int
-  First   int
-  Last    int
+  name    string
+  total   int
+  first   int
+  last    int
 }
 
 func (n *Client) Group(name string) Group {
@@ -17,16 +17,16 @@ func (n *Client) Group(name string) Group {
   var g Group
   n = n.Command("GROUP "+name)
 
-  if n.Status.Code != 211 {
+  if n.status.code != 211 {
     return g
   }
 
-  info := strings.Split(n.Status.Message, " ")
+  info := strings.Split(n.status.message, " ")
 
-  g.Total, _ = strconv.Atoi(info[0])
-  g.First, _ = strconv.Atoi(info[1])
-  g.Last,  _ = strconv.Atoi(info[2])
-  g.Name     = info[3]
+  g.total, _ = strconv.Atoi(info[0])
+  g.first, _ = strconv.Atoi(info[1])
+  g.last,  _ = strconv.Atoi(info[2])
+  g.name     = info[3]
 
   return g
 
